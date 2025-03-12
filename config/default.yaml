@@ -1,22 +1,32 @@
 seed: 1
+torch_deterministic: true
+cuda: true
+track: true
+wandb_project_name: "MultiGrid"
+wandb_entity: "rl-power"
+capture_video: false
 
-# RL params
+total_timesteps: 1000000
+learning_rate: 0.00025
+num_envs: 1
+num_steps: 128
+anneal_lr: true
 gamma: 0.99
-rl_test_episodes: 100000
-eps_start: 1.0
-eps_end: 0.02
-eps_decay: 500000
-target_update: 1000
-initial_memory: 2000
-memory_size: 5000000  # 100000 and 1000000 did not work well
-n_actions: 7
-metacontroller: 'multiagent'
+gae_lambda: 0.95
+num_minibatches: 4
+update_epochs: 4
+norm_adv: true
+clip_coef: 0.2
+clip_vloss: true
+ent_coef: 0.01
+vf_coef: 0.5
+max_grad_norm: 0.5
+target_kl: null
 
-# Learning params
-batch_size: 256
-lr: 0.001
-n_episodes: 50000
-update_every: 50
+# These will be computed at runtime
+batch_size: 0
+minibatch_size: 0
+num_iterations: 0
 
 # Logistics params
 save_model_episode: 10000

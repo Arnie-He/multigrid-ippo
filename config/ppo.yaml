@@ -1,0 +1,55 @@
+seed: 1
+torch_deterministic: true
+cuda: true
+track: true
+wandb_project_name: "MultiGrid-ff"
+wandb_entity: "rl-power"
+capture_video: false
+
+total_timesteps: 640000
+learning_rate: 0.00025
+num_envs: 1
+num_steps: 128
+anneal_lr: true
+gamma: 0.99
+gae_lambda: 0.95
+num_minibatches: 4
+update_epochs: 4
+norm_adv: true
+clip_coef: 0.2
+clip_vloss: true
+ent_coef: 0.01
+vf_coef: 0.5
+max_grad_norm: 0.5
+target_kl: null
+
+# These will be computed at runtime (I filled it in)
+batch_size: 128
+minibatch_size: 32
+num_iterations: 5000
+
+# Logistics params
+save_model_episode: 10000
+visualize_every: 500  # how many episodes before making a video
+log_episode: 500
+log_step: 1000
+version: "default"
+print_every: 10
+base_save_path: ''
+
+mode: ppo
+domain: "MultiGrid-Cluttered-Fixed-15x15"
+version: version1
+load_model_start_path: lalala
+experiment_name : "MultiGrid-Cluttered-Fixed-15x15"
+model_name: "FF"
+
+# Loss weights
+dqn_loss_weight: 1
+
+# architecture
+fc_direction: 8
+cumulants: 64
+filters: 32
+kernel_size: 3
+fc: 256

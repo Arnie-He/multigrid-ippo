@@ -5,6 +5,8 @@ import numpy as np
 import wandb
 
 import utils
+from multiagent_metacontroller import MultiAgent 
+import yaml
 
 def parse_args():
   parser = argparse.ArgumentParser()
@@ -33,35 +35,33 @@ def parse_args():
       '--load_checkpoint_from',  type=str, default=None,
       help="Path to find model checkpoints to load")
   parser.add_argument(
-        '--wandb_project', type=str, default='',
+        '--wandb_project', type=str, default='MultiGrid',
         help="Name of wandb project. Choose from 'multiagent_copying_ii' for 2 experts or 'multiagent_copying_1_expert_1_novice'. ")
-
+  parser.add_argument('--with_expert', type=str, default=None,
+                        help="Whether to use an expert; default is None.")
   return parser.parse_args()
 
-def get_metacontroller_class(config):
-    raise NotImplementedError("Implement and import a MetaController class!")
+def get_metacontroller_class(config, env, device):
+    return MultiAgent(config, env, device)
 
-def initialize(mode, env_name, debug, visualize, seed, with_expert, wandb_project):
+def initialize(mode):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    config = utils.generate_parameters(
-      mode=mode, domain=env_name, debug=(debug or visualize), 
-      seed=seed, with_expert=with_expert, wandb_project=wandb_project)
+    config = yaml.safe_load(open("config/" + mode + ".yaml", "r"))
 
     # Set seeds
-    random.seed(config.seed)
-    np.random.seed(config.seed)
-    torch.manual_seed(config.seed)
+    random.seed(config["seed"])
+    np.random.seed(config["seed"])
+    torch.manual_seed(config["seed"])
 
     env = utils.make_env(config)
 
-    metacontroller_class = get_metacontroller_class(config)
+    metacontroller_class = get_metacontroller_class(config, env, device)
 
     return device, config, env, metacontroller_class
 
 def main(args):
-    device, config, env, metacontroller_class = initialize(
-      args.mode, args.env_name, args.debug, args.visualize, args.seed, args.with_expert, args.wandb_project)
+    device, config, env, metacontroller_class = initialize(args.mode)
 
     # Ensure if you're logging to wandb, it's to the right wandb
     if not args.debug and not args.visualize:  # Real run that logs to wandb
@@ -69,7 +69,7 @@ def main(args):
         print('ERROR: when logging to wandb, must specify a valid wandb project.')
         exit(1)
 
-      current_wandb_projects = ['']  # Add your wandb project here
+      current_wandb_projects = ['MultiGrid']  # Add your wandb project here
       if str(args.wandb_project) not in current_wandb_projects:
           print('ERROR: wandb project not in current projects. '
                 'Change the project name or add your new project to the current projects in current_wandb_projects. '
@@ -86,7 +86,7 @@ def main(args):
       exit(0)
     
     # Train Model
-    agent = metacontroller_class(config, env, device, with_expert=args.with_expert, debug=args.debug)
+    agent = metacontroller_class.train(env)
 
     if args.keep_training:
       agent.load_models(model_path=args.load_checkpoint_from)

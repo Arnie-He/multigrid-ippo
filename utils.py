@@ -9,6 +9,7 @@ import seaborn as sns
 import torch
 import wandb
 import yaml
+from wrapper import RecordMultiAgentEpisodeStatistics
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
@@ -26,10 +27,12 @@ def merge_configs(update, default):
     return update
 
 def make_env(config):
-    if 'MultiGrid' in config.domain:
+    if 'MultiGrid' in config["domain"]:
         from envs import gym_multigrid
         from envs.gym_multigrid import multigrid_envs
-        env = gym.make(config.domain)
+        env = gym.make(config["domain"])
+        # Use the custom multi-agent statistics wrapper.
+        env = RecordMultiAgentEpisodeStatistics(env)
     else:
         raise NotImplementedError
     return env
@@ -102,7 +105,7 @@ def generate_parameters(mode, domain, debug=False, seed=None, with_expert=None, 
 
 
 def plot_single_frame(frame_id, full_env_image, agents_partial_images, actions, rewards, action_dict,
-                      fig_dir, expt_name, figsize=(10,10), shared_ylim=False, min_ylim=.0001):
+                      fig_dir, expt_name, predicted_actions, figsize=(10,10), shared_ylim=False, min_ylim=.0001):
     # Seaborn palette.
     sns.set()
     color_palette = sns.palettes.color_palette()
